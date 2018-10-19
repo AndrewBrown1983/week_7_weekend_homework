@@ -10,6 +10,8 @@ Matches.prototype.getMatchesData = function () {
   const request = new Request('https://worldcup.sfg.io/matches');
   request.get((data)=>{
     console.log(data);
+    this.matches = data;
+    PubSub.publish('Matches:all-data-ready', this.matches)
   });
 };
 

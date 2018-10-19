@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const Matches = __webpack_require__(/*! ./models/matches.js */ \"./src/models/matches.js\");\n\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  console.log('JavaScript Loaded');\n\n  const matches = new Matches();\n  matches.getMatchesData();\n\n})\n\n\n//# sourceURL=webpack:///./src/app.js?");
+eval("const Matches = __webpack_require__(/*! ./models/matches.js */ \"./src/models/matches.js\");\nconst MatchListView = __webpack_require__(/*! ./views/matches_list_view.js */ \"./src/views/matches_list_view.js\");\n\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  console.log('JavaScript Loaded');\n\n  const matches = new Matches();\n  matches.getMatchesData();\n\n  const listContainer = document.querySelector('#matches')\n  const matchesListView = new MatchListView(listContainer);\n  matchesListView.bindEvents();\n\n\n})\n\n\n//# sourceURL=webpack:///./src/app.js?");
 
 /***/ }),
 
@@ -126,7 +126,29 @@ eval("const request = function(url){\n  this.url = url;\n;}\n\nRequest.prototype
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst Request = __webpack_require__(/*! ../helpers/request.js */ \"./src/helpers/request.js\");\n\nconst Matches = function(){\n  this.matches = [];\n};\n\nMatches.prototype.getMatchesData = function () {\n  console.log('hi');\n  const request = new Request('https://worldcup.sfg.io/matches');\n  request.get((data)=>{\n    console.log(data);\n  });\n};\n\nmodule.exports = Matches;\n\n\n//# sourceURL=webpack:///./src/models/matches.js?");
+eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst Request = __webpack_require__(/*! ../helpers/request.js */ \"./src/helpers/request.js\");\n\nconst Matches = function(){\n  this.matches = [];\n};\n\nMatches.prototype.getMatchesData = function () {\n  console.log('hi');\n  const request = new Request('https://worldcup.sfg.io/matches');\n  request.get((data)=>{\n    console.log(data);\n    this.matches = data;\n    PubSub.publish('Matches:all-data-ready', this.matches)\n  });\n};\n\nmodule.exports = Matches;\n\n\n//# sourceURL=webpack:///./src/models/matches.js?");
+
+/***/ }),
+
+/***/ "./src/views/match_view.js":
+/*!*********************************!*\
+  !*** ./src/views/match_view.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("const MatchView = function(container, match){\n  this.container = container;\n  this.match = match;\n};\n\nMatchView.prototype.render = function () {\n  const matchItem = document.createElement('div');\n\n  const homeTeam = this.getHomeTeam();\n  matchItem.appendChild(homeTeam);\n\n  const awayTeam = this.getAwayTeam();\n  matchItem.appendChild(awayTeam);\n\n  const stadium = this.getStadium();\n  matchItem.appendChild(stadium);\n\n  this.container.appendChild(matchItem);\n};\n\nMatchView.prototype.getHomeTeam = function () {\n  const homeTeam = document.createElement('h3');\n  homeTeam.classList.add('home-team');\n  homeTeam.textContent = `Home Team:${ this.match.home_team.country}`;\n  return homeTeam;\n};\n\nMatchView.prototype.getAwayTeam = function () {\n  const awayTeam = document.createElement('h3');\n  awayTeam.classList.add('away-team');\n  awayTeam.textContent = `Away Team:${ this.match.away_team.country}`;\n  return awayTeam;\n};\n\nMatchView.prototype.getStadium = function () {\n  const stadium = document.createElement('p');\n  stadium.classList.add('stadium');\n  stadium.textContent = `Stadium:${ this.match.location}`;\n  return stadium;\n};\n\n\nmodule.exports = MatchView;\n\n\n//# sourceURL=webpack:///./src/views/match_view.js?");
+
+/***/ }),
+
+/***/ "./src/views/matches_list_view.js":
+/*!****************************************!*\
+  !*** ./src/views/matches_list_view.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst MatchView = __webpack_require__(/*! ../views/match_view.js */ \"./src/views/match_view.js\");\n\nconst MatchListView = function (container){\n  this.container = container;\n}\n\nMatchListView.prototype.bindEvents = function () {\n  PubSub.subscribe('Matches:all-data-ready', (event)=>{\n    console.log(event.detail);\n    this.matches = event.detail;\n    this.render()\n  });\n};\n\nMatchListView.prototype.render = function () {\n  this.matches.forEach((match)=>{\n    const matchView = new MatchView(this.container, match);\n    matchView.render();\n  });\n};\n\n\nmodule.exports = MatchListView;\n\n\n//# sourceURL=webpack:///./src/views/matches_list_view.js?");
 
 /***/ })
 
