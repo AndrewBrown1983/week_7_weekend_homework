@@ -12,7 +12,24 @@ Matches.prototype.getMatchesData = function () {
     console.log(data);
     this.matches = data;
     PubSub.publish('Matches:all-data-ready', this.matches)
+
+
   });
+};
+
+Matches.prototype.bindEvents = function () {
+  PubSub.subscribe('SelectView:regionSelected', (event)=>{
+    const selectedVenue = event.detail;
+    console.log(selectedVenue);
+    const newMatchList = this.modelMatchesByVenue(selectedVenue);
+    console.log(newMatchList);
+
+    PubSub.publish('Matches:matchesFiltered', newMatchList);
+  });
+};
+
+Matches.prototype.modelMatchesByVenue = function (venue) {
+  return this.matches.filter((match)=> match.venue === venue);
 };
 
 module.exports = Matches;

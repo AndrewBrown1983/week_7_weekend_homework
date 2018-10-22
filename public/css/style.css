@@ -1,0 +1,15 @@
+.matchList {border: 1px grey solid;
+border-radius: 10%;
+padding: 10px;
+margin: 10px;
+background-color: #B6CB9E}
+
+/* #matches {display: flex;
+justify-content: space-between;} */
+.selectView {}
+body {background-color: #92B4A7}
+
+.stadium {font-style: italic;}
+
+.home-team {font-family: Helvetica;}
+.away-team {font-family: Helvetica;}

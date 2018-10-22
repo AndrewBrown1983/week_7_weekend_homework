@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const Matches = __webpack_require__(/*! ./models/matches.js */ \"./src/models/matches.js\");\nconst MatchListView = __webpack_require__(/*! ./views/matches_list_view.js */ \"./src/views/matches_list_view.js\");\n\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  console.log('JavaScript Loaded');\n\n  const matches = new Matches();\n  matches.getMatchesData();\n\n  const listContainer = document.querySelector('#matches')\n  const matchesListView = new MatchListView(listContainer);\n  matchesListView.bindEvents();\n\n\n})\n\n\n//# sourceURL=webpack:///./src/app.js?");
+eval("const Matches = __webpack_require__(/*! ./models/matches.js */ \"./src/models/matches.js\");\nconst MatchListView = __webpack_require__(/*! ./views/matches_list_view.js */ \"./src/views/matches_list_view.js\");\nconst SelectView = __webpack_require__(/*! ./views/select_view.js */ \"./src/views/select_view.js\");\nconst MatchesByVenue = __webpack_require__(/*! ./views/matches_by_venue.js */ \"./src/views/matches_by_venue.js\")\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  console.log('JavaScript Loaded');\n\n  const matches = new Matches();\n  matches.getMatchesData();\n\n  const listContainer = document.querySelector('#matches');\n  const matchesListView = new MatchListView(listContainer);\n  matchesListView.bindEvents();\n\n  const selectElement = document.querySelector('#dropDown');\n  const selectView = new SelectView(selectElement);\n  selectView.bindEvents();\n\n  matches.bindEvents();\n\n  const matchesByVenue = new MatchesByVenue(listContainer);\n  matchesByVenue.bindEvents(matchesByVenue);\n\n\n})\n\n\n//# sourceURL=webpack:///./src/app.js?");
 
 /***/ }),
 
@@ -126,7 +126,7 @@ eval("const request = function(url){\n  this.url = url;\n;}\n\nRequest.prototype
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst Request = __webpack_require__(/*! ../helpers/request.js */ \"./src/helpers/request.js\");\n\nconst Matches = function(){\n  this.matches = [];\n};\n\nMatches.prototype.getMatchesData = function () {\n  console.log('hi');\n  const request = new Request('https://worldcup.sfg.io/matches');\n  request.get((data)=>{\n    console.log(data);\n    this.matches = data;\n    PubSub.publish('Matches:all-data-ready', this.matches)\n  });\n};\n\nmodule.exports = Matches;\n\n\n//# sourceURL=webpack:///./src/models/matches.js?");
+eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst Request = __webpack_require__(/*! ../helpers/request.js */ \"./src/helpers/request.js\");\n\nconst Matches = function(){\n  this.matches = [];\n};\n\nMatches.prototype.getMatchesData = function () {\n  console.log('hi');\n  const request = new Request('https://worldcup.sfg.io/matches');\n  request.get((data)=>{\n    console.log(data);\n    this.matches = data;\n    PubSub.publish('Matches:all-data-ready', this.matches)\n\n\n  });\n};\n\nMatches.prototype.bindEvents = function () {\n  PubSub.subscribe('SelectView:regionSelected', (event)=>{\n    const selectedVenue = event.detail;\n    console.log(selectedVenue);\n    const newMatchList = this.modelMatchesByVenue(selectedVenue);\n    console.log(newMatchList);\n\n    PubSub.publish('Matches:matchesFiltered', newMatchList);\n  });\n};\n\nMatches.prototype.modelMatchesByVenue = function (venue) {\n  return this.matches.filter((match)=> match.venue === venue);\n};\n\nmodule.exports = Matches;\n\n\n//# sourceURL=webpack:///./src/models/matches.js?");
 
 /***/ }),
 
@@ -137,7 +137,18 @@ eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/he
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("const MatchView = function(container, match){\n  this.container = container;\n  this.match = match;\n};\n\nMatchView.prototype.render = function () {\n  const matchItem = document.createElement('div');\n\n  const homeTeam = this.getHomeTeam();\n  matchItem.appendChild(homeTeam);\n\n  const awayTeam = this.getAwayTeam();\n  matchItem.appendChild(awayTeam);\n\n  const stadium = this.getStadium();\n  matchItem.appendChild(stadium);\n\n  this.container.appendChild(matchItem);\n};\n\nMatchView.prototype.getHomeTeam = function () {\n  const homeTeam = document.createElement('h3');\n  homeTeam.classList.add('home-team');\n  homeTeam.textContent = `Home Team:${ this.match.home_team.country}`;\n  return homeTeam;\n};\n\nMatchView.prototype.getAwayTeam = function () {\n  const awayTeam = document.createElement('h3');\n  awayTeam.classList.add('away-team');\n  awayTeam.textContent = `Away Team:${ this.match.away_team.country}`;\n  return awayTeam;\n};\n\nMatchView.prototype.getStadium = function () {\n  const stadium = document.createElement('p');\n  stadium.classList.add('stadium');\n  stadium.textContent = `Stadium:${ this.match.location}`;\n  return stadium;\n};\n\n\nmodule.exports = MatchView;\n\n\n//# sourceURL=webpack:///./src/views/match_view.js?");
+eval("const MatchView = function(container, match){\n  this.container = container;\n  this.match = match;\n};\n\nMatchView.prototype.render = function () {\n  const matchItem = document.createElement('div');\n  matchItem.classList.add('matchList')\n\n  const homeTeam = this.getHomeTeam();\n  matchItem.appendChild(homeTeam);\n\n  const awayTeam = this.getAwayTeam();\n  matchItem.appendChild(awayTeam);\n\n  const stadium = this.getStadium();\n  matchItem.appendChild(stadium);\n\n  const score = this.getScore();\n  matchItem.appendChild(score);\n\n  this.container.appendChild(matchItem);\n};\n\nMatchView.prototype.getHomeTeam = function () {\n  const homeTeam = document.createElement('p');\n  homeTeam.classList.add('home-team');\n  homeTeam.textContent = `Home Team: ${ this.match.home_team.country}`;\n  return homeTeam;\n};\n\nMatchView.prototype.getAwayTeam = function () {\n  const awayTeam = document.createElement('p');\n  awayTeam.classList.add('away-team');\n  awayTeam.textContent = `Away Team: ${ this.match.away_team.country}`;\n  return awayTeam;\n};\n\nMatchView.prototype.getStadium = function () {\n  const stadium = document.createElement('p');\n  stadium.classList.add('stadium');\n  stadium.textContent = `Stadium: ${ this.match.location}`;\n  return stadium;\n};\n\nMatchView.prototype.getScore = function () {\n  const score = document.createElement('h3');\n  score.classList.add('score');\n  score.textContent = `Score: ${ this.match.home_team.goals} - ${ this.match.away_team.goals}`;\n  return score;\n};\n\n\nmodule.exports = MatchView;\n\n\n//# sourceURL=webpack:///./src/views/match_view.js?");
+
+/***/ }),
+
+/***/ "./src/views/matches_by_venue.js":
+/*!***************************************!*\
+  !*** ./src/views/matches_by_venue.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst MatchView = __webpack_require__(/*! ./match_view.js */ \"./src/views/match_view.js\");\n\nconst MatchesByVenue = function(container){\n  this.container = container\n};\n\nMatchesByVenue.prototype.bindEvents = function () {\n  PubSub.subscribe('Matches:matchesFiltered', (event)=>{\n     this.matchList = event.detail;\n    console.log(this.matchList);\n    this.container.innerHTML = '';\n    this.render();\n  })\n};\n\nMatchesByVenue.prototype.render = function (matchArray) {\n\n  this.matchList.forEach((match)=>{\n    const matchView = new MatchView(this.container, match);\n    matchView.render();\n});\n};\n\n\n\nmodule.exports = MatchesByVenue;\n\n\n//# sourceURL=webpack:///./src/views/matches_by_venue.js?");
 
 /***/ }),
 
@@ -149,6 +160,17 @@ eval("const MatchView = function(container, match){\n  this.container = containe
 /***/ (function(module, exports, __webpack_require__) {
 
 eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\nconst MatchView = __webpack_require__(/*! ../views/match_view.js */ \"./src/views/match_view.js\");\n\nconst MatchListView = function (container){\n  this.container = container;\n}\n\nMatchListView.prototype.bindEvents = function () {\n  PubSub.subscribe('Matches:all-data-ready', (event)=>{\n    console.log(event.detail);\n    this.matches = event.detail;\n    this.render()\n  });\n};\n\nMatchListView.prototype.render = function () {\n  this.matches.forEach((match)=>{\n    const matchView = new MatchView(this.container, match);\n    matchView.render();\n  });\n};\n\n\nmodule.exports = MatchListView;\n\n\n//# sourceURL=webpack:///./src/views/matches_list_view.js?");
+
+/***/ }),
+
+/***/ "./src/views/select_view.js":
+/*!**********************************!*\
+  !*** ./src/views/select_view.js ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("const PubSub = __webpack_require__(/*! ../helpers/pub_sub.js */ \"./src/helpers/pub_sub.js\");\n\nconst SelectView = function(element){\n  this.element = element;\n};\n\nSelectView.prototype.bindEvents = function () {\n  PubSub.subscribe('Matches:all-data-ready', (event)=>{\n    const allMatches = event.detail;\n    console.log(allMatches);\n    const venueList = this.handleData(allMatches);\n    console.log(venueList);\n    this.populate(venueList);\n  });\n  this.element.addEventListener('change', (event)=>{\n    selectedVenue = event.target.value;\n    console.log(selectedVenue);\n    PubSub.publish('SelectView:regionSelected', selectedVenue);\n  })\n\n};\n\n\nSelectView.prototype.handleData = function (matches) {\n  const groups = this.getVenues(matches);\n  return groups;\n};\n\nSelectView.prototype.getVenues = function (matches) {\n  return matches.map(match => match.venue).filter((venue, index, venues)=> venues.indexOf(venue) === index);\n};\n\nSelectView.prototype.populate = function (venues) {\n\n  for (venue of venues) {\n    const option = document.createElement('option');\n    option.textContent = venue;\n    option.value = venue;\n    this.element.appendChild(option);\n\n  }\n  \n};\n\n\nmodule.exports = SelectView;\n\n\n//# sourceURL=webpack:///./src/views/select_view.js?");
 
 /***/ })
 
